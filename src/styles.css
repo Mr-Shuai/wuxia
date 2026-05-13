@@ -167,9 +167,128 @@ input {
   margin-bottom: 1.25rem;
 }
 
+.fighter-card,
+.battle-hint,
+.action-card {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.meter-group {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.meter-row {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.meter-label-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.92rem;
+  color: rgba(243, 234, 216, 0.82);
+}
+
+.meter-track {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.meter-fill {
+  height: 100%;
+  border-radius: inherit;
+}
+
+.meter-fill.hp {
+  background: linear-gradient(90deg, #8d2c2c, #d35b5b);
+}
+
+.meter-fill.qi {
+  background: linear-gradient(90deg, #205f7b, #43a5d5);
+}
+
+.meter-fill.poise {
+  background: linear-gradient(90deg, #816126, #d2ab54);
+}
+
+.battle-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.battle-tag {
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid rgba(201, 164, 92, 0.35);
+  background: rgba(201, 164, 92, 0.12);
+  font-size: 0.85rem;
+}
+
+.muted-tag {
+  opacity: 0.75;
+}
+
+.battle-hint {
+  margin: 1rem 0;
+  padding: 1rem;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(201, 164, 92, 0.18);
+}
+
+.action-card {
+  text-align: left;
+}
+
+.action-title-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.action-description {
+  color: rgba(243, 234, 216, 0.78);
+  font-size: 0.92rem;
+}
+
+.action-badge {
+  font-size: 0.8rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+}
+
+.badge-recommend {
+  color: #120f0b;
+  background: #d2ab54;
+}
+
+.badge-neutral {
+  color: #f3ead8;
+  background: rgba(255, 255, 255, 0.12);
+}
+
 .battle-log {
   max-height: 70vh;
   overflow: auto;
+}
+
+.battle-log li:last-child {
+  color: #fff1cb;
+}
+
+.battle-log-mark {
+  color: #120f0b;
+  background: #c9a45c;
+  border-radius: 6px;
+  padding: 0 0.2rem;
 }
 
 .primary-button {
