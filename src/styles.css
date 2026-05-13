@@ -1,0 +1,188 @@
+:root {
+  color: #f3ead8;
+  background: radial-gradient(circle at top, #2a2118, #120f0b 60%);
+  font-family: 'PingFang SC', 'Noto Serif SC', serif;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #120f0b;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button {
+  border: 1px solid rgba(201, 164, 92, 0.6);
+  background: rgba(201, 164, 92, 0.12);
+  color: #f3ead8;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+input {
+  width: 100%;
+  padding: 0.85rem 1rem;
+  border-radius: 12px;
+  border: 1px solid rgba(243, 234, 216, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.screen {
+  min-height: 100vh;
+}
+
+.shell {
+  width: min(1120px, calc(100vw - 2rem));
+  margin: 0 auto;
+  padding: 2rem 0 3rem;
+}
+
+.hero-screen,
+.result-layout {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-panel,
+.panel {
+  background: linear-gradient(180deg, rgba(42, 33, 24, 0.92), rgba(18, 15, 11, 0.96));
+  border: 1px solid rgba(201, 164, 92, 0.24);
+  border-radius: 20px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+  padding: 1.5rem;
+}
+
+.hero-panel {
+  max-width: 720px;
+  text-align: center;
+  padding: 3rem;
+}
+
+.eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: #c9a45c;
+  font-size: 0.78rem;
+  margin: 0 0 0.75rem;
+}
+
+.lead,
+.muted,
+.location {
+  color: rgba(243, 234, 216, 0.78);
+}
+
+.two-column,
+.battle-layout {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+}
+
+.section-block + .section-block {
+  margin-top: 1.5rem;
+}
+
+.field {
+  display: grid;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.option-grid,
+.choice-list,
+.battle-actions,
+.tag-row {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.option-card {
+  text-align: left;
+  display: grid;
+  gap: 0.35rem;
+}
+
+.option-card.selected {
+  border-color: #c9a45c;
+  background: rgba(201, 164, 92, 0.22);
+}
+
+.story-copy {
+  display: grid;
+  gap: 0.85rem;
+  margin: 1rem 0 1.25rem;
+}
+
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin: 0;
+}
+
+.status-grid dt {
+  color: rgba(243, 234, 216, 0.68);
+}
+
+.status-grid dd {
+  margin: 0.2rem 0 0;
+  font-size: 1.1rem;
+}
+
+.summary-list,
+.result-list,
+.battle-log ul {
+  margin: 0;
+  padding-left: 1.25rem;
+}
+
+.battle-header {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.battle-log {
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.primary-button {
+  margin-top: 1rem;
+}
+
+@media (max-width: 900px) {
+  .two-column,
+  .battle-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-panel {
+    padding: 2rem 1.25rem;
+  }
+}
