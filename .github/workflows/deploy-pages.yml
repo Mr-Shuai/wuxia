@@ -23,6 +23,7 @@ jobs:
       NODE_ENV: development
       NPM_CONFIG_PRODUCTION: 'false'
       NPM_CONFIG_INCLUDE: dev
+      NPM_CONFIG_OMIT: ''
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,13 +35,14 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci --include=dev
+        run: npm ci --include=dev --production=false
 
       - name: Verify toolchain
         run: |
-          npx vitest --version
-          npx tsc --version
-          npx vite --version
+          npm ls vitest typescript vite
+          ./node_modules/.bin/vitest --version
+          ./node_modules/.bin/tsc --version
+          ./node_modules/.bin/vite --version
 
       - name: Run tests
         run: npm test
