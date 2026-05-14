@@ -20,6 +20,9 @@ jobs:
     runs-on: ubuntu-latest
     env:
       VITE_BASE_PATH: /wuxia/
+      NODE_ENV: development
+      NPM_CONFIG_PRODUCTION: 'false'
+      NPM_CONFIG_INCLUDE: dev
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -32,6 +35,12 @@ jobs:
 
       - name: Install dependencies
         run: npm ci --include=dev
+
+      - name: Verify toolchain
+        run: |
+          npx vitest --version
+          npx tsc --version
+          npx vite --version
 
       - name: Run tests
         run: npm test
