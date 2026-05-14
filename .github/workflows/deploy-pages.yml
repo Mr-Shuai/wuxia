@@ -39,7 +39,6 @@ jobs:
 
       - name: Verify toolchain
         run: |
-          npm ls vitest typescript vite
           ./node_modules/.bin/vitest --version
           ./node_modules/.bin/tsc --version
           ./node_modules/.bin/vite --version
