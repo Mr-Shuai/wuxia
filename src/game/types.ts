@@ -1,4 +1,4 @@
-export type GamePhase = 'start' | 'create' | 'story' | 'battle' | 'result' | 'ending'
+export type GamePhase = 'start' | 'create' | 'story' | 'exploration' | 'battle' | 'ending'
 
 export type OriginId = 'scholar' | 'wanderer' | 'escort'
 export type TalentId = 'steady-heart' | 'keen-eye' | 'iron-bone'
@@ -21,10 +21,55 @@ export interface GameState {
   debt: number
   favorSword: number
   favorBlackMarket: number
+  inventory: string[]
+  martialSkills: string[]
+  exploredScenes: string[]
+  activeWeaponId?: string
   currentNodeId: string
   visitedNodes: string[]
   flags: Record<string, boolean>
   chapterLogs: string[]
+}
+
+export interface ExplorationReward {
+  weaponId?: string
+  martialSkillId?: string
+  itemId?: string
+}
+
+export interface WeaponDefinition {
+  id: string
+  name: string
+  description: string
+  attackBonus: number
+  defenseBonus?: number
+}
+
+export interface MartialSkillDefinition {
+  id: string
+  name: string
+  description: string
+  attackBonus?: number
+  poiseBonus?: number
+}
+
+export interface ExplorationAction {
+  id: string
+  text: string
+  log: string
+  once?: boolean
+  nextNodeId: string
+  rewards?: ExplorationReward
+  stats?: Partial<Record<StatEffectKey, number>>
+  requires?: ChoiceRequirements
+}
+
+export interface ExplorationScene {
+  id: string
+  title: string
+  location: string
+  description: string[]
+  actions: ExplorationAction[]
 }
 
 export interface OriginDefinition {
@@ -68,6 +113,15 @@ export interface ChoiceEffects {
   log: string
   stats?: Partial<Record<StatEffectKey, number>>
   flags?: Record<string, boolean>
+  rewards?: ExplorationReward
+}
+
+export interface ChoiceRequirements {
+  flags?: Record<string, boolean>
+  minStats?: Partial<Record<StatEffectKey, number>>
+  martialSkills?: string[]
+  inventory?: string[]
+  exploredScenes?: string[]
 }
 
 export interface StoryChoice {
@@ -76,6 +130,7 @@ export interface StoryChoice {
   nextNodeId: string
   effects: ChoiceEffects
   battleId?: string
+  requires?: ChoiceRequirements
 }
 
 export interface StoryNode {
@@ -91,6 +146,8 @@ export interface EndingDefinition {
   title: string
   summary: string
   tone: string
+  nextNodeId?: string
+  continueText?: string
   condition: (state: GameState) => boolean
 }
 
@@ -113,6 +170,7 @@ export interface BattleDefinition {
 }
 
 export interface BattleState {
+  title: string
   player: Pick<GameState, 'hp' | 'qi' | 'poise' | 'attack' | 'defense' | 'maxHp' | 'maxQi' | 'maxPoise'>
   enemy: BattleEnemy
   log: string[]

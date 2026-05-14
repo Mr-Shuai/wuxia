@@ -4,6 +4,7 @@ import type { BattleState } from '../game/types'
 
 function createBattleState(overrides?: Partial<BattleState>): BattleState {
   return {
+    title: '古道伏击',
     player: {
       hp: 22,
       qi: 6,
@@ -30,6 +31,15 @@ function createBattleState(overrides?: Partial<BattleState>): BattleState {
 }
 
 describe('BattleScreen readability', () => {
+  it('shows battle title and grouped sections for ongoing fights', () => {
+    render(<BattleScreen battle={createBattleState()} onAction={() => {}} />)
+
+    expect(screen.getByRole('heading', { name: '古道伏击' })).toBeInTheDocument()
+    expect(screen.getByText('交锋中')).toBeInTheDocument()
+    expect(screen.getByText('可选招式')).toBeInTheDocument()
+    expect(screen.getByText('战斗日志')).toBeInTheDocument()
+  })
+
   it('shows break recommendation when enemy poise is zero', () => {
     render(<BattleScreen battle={createBattleState()} onAction={() => {}} />)
 
@@ -70,5 +80,26 @@ describe('BattleScreen readability', () => {
     expect(screen.getByText('危险')).toBeInTheDocument()
     expect(screen.getByText('气不足')).toBeInTheDocument()
     expect(screen.getByText('你已陷入危险，优先防守会更稳。')).toBeInTheDocument()
+  })
+
+  it('shows inline battle result and continue button after fight resolves', () => {
+    render(
+      <BattleScreen
+        battle={createBattleState({ outcome: 'victory' })}
+        onAction={() => {}}
+        inlineResult={{
+          text: '你赢下了这场较量，众人的目光也第一次真正落在你身上。',
+          recentLogs: ['你赢下了这场较量，众人的目光也第一次真正落在你身上。'],
+          streaming: false,
+        }}
+        onContinue={() => {}}
+      />,
+    )
+
+    expect(screen.getByRole('heading', { name: '古道伏击' })).toBeInTheDocument()
+    expect(screen.getByText('战局已定')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '继续前行' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: '攻击' })).not.toBeInTheDocument()
+    expect(screen.queryByText('可选招式')).not.toBeInTheDocument()
   })
 })

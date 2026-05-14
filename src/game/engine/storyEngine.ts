@@ -1,8 +1,50 @@
 import { endings } from '../data/endings'
 import { storyNodes } from '../data/story'
-import type { GameState, StatEffectKey } from '../types'
+import type { ChoiceRequirements, GameState, StatEffectKey, StoryChoice } from '../types'
 
 const boundedStats = new Set<StatEffectKey>(['hp', 'qi', 'poise'])
+
+function matchesRequirements(state: GameState, requirements?: ChoiceRequirements) {
+  if (!requirements) {
+    return true
+  }
+
+  for (const skillId of requirements.martialSkills ?? []) {
+    if (!state.martialSkills.includes(skillId)) {
+      return false
+    }
+  }
+
+  for (const itemId of requirements.inventory ?? []) {
+    if (!state.inventory.includes(itemId)) {
+      return false
+    }
+  }
+
+  for (const sceneKey of requirements.exploredScenes ?? []) {
+    if (!state.exploredScenes.includes(sceneKey)) {
+      return false
+    }
+  }
+
+  for (const [flag, expected] of Object.entries(requirements.flags ?? {})) {
+    if (state.flags[flag] !== expected) {
+      return false
+    }
+  }
+
+  for (const [stat, minValue] of Object.entries(requirements.minStats ?? {}) as [StatEffectKey, number][]) {
+    if (state[stat] < minValue) {
+      return false
+    }
+  }
+
+  return true
+}
+
+export function isChoiceAvailable(state: GameState, choice: StoryChoice) {
+  return matchesRequirements(state, choice.requires)
+}
 
 export function applyChoice(state: GameState, nodeId: string, choiceId: string): GameState {
   const node = storyNodes[nodeId]
@@ -10,6 +52,10 @@ export function applyChoice(state: GameState, nodeId: string, choiceId: string):
 
   if (!node || !choice) {
     throw new Error(`Choice not found: ${nodeId}:${choiceId}`)
+  }
+
+  if (!isChoiceAvailable(state, choice)) {
+    throw new Error(`Choice not available: ${nodeId}:${choiceId}`)
   }
 
   const next: GameState = {

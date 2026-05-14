@@ -1,8 +1,17 @@
+import ResultScreen from './ResultScreen'
 import type { BattleState, PlayerAction } from '../game/types'
+
+interface InlineResultState {
+  text: string
+  recentLogs: string[]
+  streaming: boolean
+}
 
 interface BattleScreenProps {
   battle: BattleState
   onAction: (action: PlayerAction) => void
+  inlineResult?: InlineResultState | null
+  onContinue?: () => void
 }
 
 const actionLabels: Record<PlayerAction, string> = {
@@ -24,6 +33,11 @@ type FighterViewState = {
 type ActionMeta = {
   description: string
   badge?: '推荐' | '收益一般'
+}
+
+type OutcomeMeta = {
+  badge: string
+  summary: string
 }
 
 function getStatusTags(fighter: FighterViewState) {
@@ -75,6 +89,27 @@ function getActionMeta(action: PlayerAction, battle: BattleState): ActionMeta {
   return {
     description: '对破绽敌人收益最高',
     badge: battle.enemy.poise === 0 ? '推荐' : '收益一般',
+  }
+}
+
+function getOutcomeMeta(battle: BattleState): OutcomeMeta {
+  if (battle.outcome === 'victory') {
+    return {
+      badge: '胜局已定',
+      summary: '你已经压住对手，只需收束余波再继续前行。',
+    }
+  }
+
+  if (battle.outcome === 'defeat') {
+    return {
+      badge: '暂失先机',
+      summary: '这一阵已经分出胜负，先看清代价，再决定下一步。',
+    }
+  }
+
+  return {
+    badge: '交锋中',
+    summary: '先看清局势，再决定这一手是压势、稳气还是收招。',
   }
 }
 
@@ -132,7 +167,12 @@ function renderFighterCard(label: string, fighter: FighterViewState) {
   )
 }
 
-export default function BattleScreen({ battle, onAction }: BattleScreenProps) {
+export default function BattleScreen({
+  battle,
+  onAction,
+  inlineResult = null,
+  onContinue,
+}: BattleScreenProps) {
   const playerView: FighterViewState = {
     hp: battle.player.hp,
     qi: battle.player.qi,
@@ -152,39 +192,95 @@ export default function BattleScreen({ battle, onAction }: BattleScreenProps) {
   }
 
   const actionOrder: PlayerAction[] = ['attack', 'focus', 'guard', 'break']
+  const showResolvedState = battle.outcome !== 'ongoing' && inlineResult
+  const outcomeMeta = getOutcomeMeta(battle)
+  const visibleLogCount = Math.min(6, battle.log.length)
 
   return (
     <main className="screen shell battle-layout">
       <section className="panel battle-panel">
+        <header className="battle-scene-header">
+          <div className="battle-scene-copy">
+            <p className="eyebrow">交锋</p>
+            <h1>{battle.title}</h1>
+            <p className="location">对手：{battle.enemy.name}</p>
+          </div>
+          <div className="battle-scene-status-card">
+            <span className={`battle-phase-badge ${battle.outcome === 'ongoing' ? 'phase-ongoing' : battle.outcome === 'victory' ? 'phase-victory' : 'phase-defeat'}`}>
+              {outcomeMeta.badge}
+            </span>
+            <p>{outcomeMeta.summary}</p>
+          </div>
+        </header>
+
         <div className="battle-header">
           {renderFighterCard('你', playerView)}
           {renderFighterCard(battle.enemy.name, enemyView)}
         </div>
 
-        <section className="battle-hint">
-          <p className="eyebrow">当前局势</p>
-          <p>{getCombatHint(battle)}</p>
-        </section>
-
-        <div className="battle-actions">
-          {actionOrder.map((action) => {
-            const meta = getActionMeta(action, battle)
-
-            return (
-              <button key={action} type="button" className="action-card" onClick={() => onAction(action)}>
-                <span className="action-title-row">
-                  <strong>{actionLabels[action]}</strong>
-                  {meta.badge ? <span className={`action-badge ${meta.badge === '推荐' ? 'badge-recommend' : 'badge-neutral'}`}>{meta.badge}</span> : null}
-                </span>
-                <span className="action-description">{meta.description}</span>
+        {showResolvedState ? (
+          <>
+            <ResultScreen
+              eyebrow="胜负已分"
+              title="战局已定"
+              text={inlineResult.text}
+              recentLogs={inlineResult.recentLogs}
+              streaming={inlineResult.streaming}
+            />
+            {onContinue ? (
+              <button
+                type="button"
+                className="primary-button result-continue-button"
+                onClick={onContinue}
+                disabled={inlineResult.streaming}
+              >
+                继续前行
               </button>
-            )
-          })}
-        </div>
+            ) : null}
+          </>
+        ) : (
+          <>
+            <section className="battle-command-panel">
+              <div className="battle-command-header">
+                <div>
+                  <p className="eyebrow">可选招式</p>
+                  <h2>先看局势，再落这一手</h2>
+                </div>
+                <span className="muted">每回合只能出一手，尽量顺着提醒去抢节奏。</span>
+              </div>
+
+              <section className="battle-hint">
+                <p className="eyebrow">当前局势</p>
+                <p>{getCombatHint(battle)}</p>
+              </section>
+
+              <div className="battle-actions">
+                {actionOrder.map((action) => {
+                  const meta = getActionMeta(action, battle)
+
+                  return (
+                    <button key={action} type="button" className="action-card" onClick={() => onAction(action)}>
+                      <span className="action-title-row">
+                        <strong>{actionLabels[action]}</strong>
+                        {meta.badge ? <span className={`action-badge ${meta.badge === '推荐' ? 'badge-recommend' : 'badge-neutral'}`}>{meta.badge}</span> : null}</span>
+                      <span className="action-description">{meta.description}</span>
+                    </button>
+                  )
+                })}
+              </div>
+            </section>
+          </>
+        )}
       </section>
 
       <aside className="panel battle-log">
-        <p className="eyebrow">战斗日志</p>
+        <div className="battle-log-header">
+          <div>
+            <p className="eyebrow">战斗日志</p>
+            <h2>近身交锋</h2>
+          </div>
+          <span className="battle-log-count">最近 {visibleLogCount} 条</span>
+        </div>
         <ul>
           {battle.log.slice(-6).map((line, index) => (
             <li key={`${line}-${index}`}>{highlightBattleLog(line)}</li>

@@ -1,5 +1,34 @@
 import { battles } from '../data/battles'
+import { martialSkills } from '../data/martialSkills'
+import { weapons } from '../data/weapons'
 import type { BattleState, GameState, PlayerAction } from '../types'
+
+function getWeaponStats(state: GameState) {
+  if (!state.activeWeaponId) {
+    return { attackBonus: 0, defenseBonus: 0 }
+  }
+
+  const weapon = weapons[state.activeWeaponId]
+
+  return {
+    attackBonus: weapon?.attackBonus ?? 0,
+    defenseBonus: weapon?.defenseBonus ?? 0,
+  }
+}
+
+function getMartialSkillBonuses(state: GameState) {
+  return state.martialSkills.reduce(
+    (total, skillId) => {
+      const skill = martialSkills[skillId]
+
+      total.attackBonus += skill?.attackBonus ?? 0
+      total.poiseBonus += skill?.poiseBonus ?? 0
+
+      return total
+    },
+    { attackBonus: 0, poiseBonus: 0 },
+  )
+}
 
 export function createBattleState(player: GameState, battleId: string): BattleState {
   const definition = battles[battleId]
@@ -8,16 +37,21 @@ export function createBattleState(player: GameState, battleId: string): BattleSt
     throw new Error(`Battle not found: ${battleId}`)
   }
 
+  const weaponStats = getWeaponStats(player)
+  const martialBonuses = getMartialSkillBonuses(player)
+  const maxPoise = player.maxPoise + martialBonuses.poiseBonus
+
   return {
+    title: definition.title,
     player: {
       hp: player.hp,
       qi: player.qi,
-      poise: player.poise,
-      attack: player.attack,
-      defense: player.defense,
+      poise: Math.min(maxPoise, player.poise + martialBonuses.poiseBonus),
+      attack: player.attack + weaponStats.attackBonus + martialBonuses.attackBonus,
+      defense: player.defense + weaponStats.defenseBonus,
       maxHp: player.maxHp,
       maxQi: player.maxQi,
-      maxPoise: player.maxPoise,
+      maxPoise,
     },
     enemy: { ...definition.enemy },
     log: [`${definition.enemy.name} 挡在了你的去路。`],

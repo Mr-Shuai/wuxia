@@ -17,4 +17,17 @@ describe('createGameState', () => {
     expect(state.maxQi).toBeGreaterThan(0)
     expect(state.flags.savedSpy).toBe(false)
   })
+
+  it('initializes exploration, martial skill, and weapon state fields', () => {
+    const state = createGameState({
+      name: '阿青',
+      originId: 'wanderer',
+      talentId: 'steady-heart',
+    })
+
+    expect(state.inventory).toEqual([])
+    expect(state.martialSkills).toEqual([])
+    expect(state.exploredScenes).toEqual([])
+    expect(state.activeWeaponId).toBeUndefined()
+  })
 })

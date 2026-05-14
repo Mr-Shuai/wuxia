@@ -1,25 +1,37 @@
-import type { GameState } from '../game/types'
-
 interface ResultScreenProps {
-  state: GameState
+  eyebrow?: string
+  title?: string
   text: string
-  onContinue: () => void
+  recentLogs?: string[]
+  streaming?: boolean
+  className?: string
 }
 
-export default function ResultScreen({ state, text, onContinue }: ResultScreenProps) {
-  const recentLogs = state.chapterLogs.slice(-3)
+export default function ResultScreen({
+  eyebrow = '江湖回声',
+  title = '这一段余波，正在眼前铺开',
+  text,
+  recentLogs = [],
+  streaming = false,
+  className = '',
+}: ResultScreenProps) {
+  if (!text && recentLogs.length === 0) {
+    return null
+  }
 
   return (
-    <main className="screen shell result-layout">
-      <section className="panel">
-        <p className="eyebrow">章节结算</p>
-        <h1>这一段江湖路，已经留下回声</h1>
-        <p>{text}</p>
-        <ul className="result-list">
+    <section className={`panel inline-result-panel ${className}`.trim()}>
+      <p className="eyebrow">{eyebrow}</p>
+      <h2>{title}</h2>
+      <p className="inline-result-copy">
+        {text}
+        {streaming ? <span className="stream-cursor" aria-hidden="true">▍</span> : null}
+      </p>
+      {recentLogs.length > 0 ? (
+        <ul className="result-list inline-result-list">
           {recentLogs.map((log) => <li key={log}>{log}</li>)}
         </ul>
-        <button type="button" className="primary-button" onClick={onContinue}>继续前行</button>
-      </section>
-    </main>
+      ) : null}
+    </section>
   )
 }

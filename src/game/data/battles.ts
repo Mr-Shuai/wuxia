@@ -40,4 +40,30 @@ export const battles: Record<string, BattleDefinition> = {
       defense: 2,
     },
   },
+  'night-raid-captain': {
+    id: 'night-raid-captain',
+    title: '渡口夜战',
+    enemy: {
+      id: 'night-raid-captain',
+      name: '夜袭统领',
+      hp: 30,
+      qi: 8,
+      poise: 11,
+      attack: 9,
+      defense: 3,
+    },
+  },
+  'salt-port-enforcer': {
+    id: 'salt-port-enforcer',
+    title: '夜封盐港',
+    enemy: {
+      id: 'salt-port-enforcer',
+      name: '私盐护头',
+      hp: 22,
+      qi: 7,
+      poise: 9,
+      attack: 7,
+      defense: 2,
+    },
+  },
 }

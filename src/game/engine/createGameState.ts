@@ -35,6 +35,10 @@ export function createGameState(input: CreateGameStateInput): GameState {
     debt: 0,
     favorSword: 0,
     favorBlackMarket: 0,
+    inventory: [],
+    martialSkills: [],
+    exploredScenes: [],
+    activeWeaponId: undefined,
     currentNodeId: INITIAL_NODE_ID,
     visitedNodes: [INITIAL_NODE_ID],
     flags: {
@@ -42,6 +46,12 @@ export function createGameState(input: CreateGameStateInput): GameState {
       keptScroll: false,
       soldScroll: false,
       wonInnDuel: false,
+      wonNightRaid: false,
+      lostNightRaid: false,
+      choseRighteousVerdict: false,
+      choseBlackMarketVerdict: false,
+      choseSecretVerdict: false,
+      choseNeutralVerdict: false,
     },
     chapterLogs: ['你踏入了风雨欲来的江湖。'],
   }
