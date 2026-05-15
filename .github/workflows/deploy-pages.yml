@@ -34,15 +34,6 @@ jobs:
       - name: Install dependencies
         run: npm ci --include=dev --production=false
 
-      - name: Verify toolchain
-        run: |
-          test -f ./node_modules/vitest/vitest.mjs
-          test -f ./node_modules/typescript/bin/tsc
-          test -f ./node_modules/vite/bin/vite.js
-          node ./node_modules/vitest/vitest.mjs --version
-          node ./node_modules/typescript/bin/tsc --version
-          node ./node_modules/vite/bin/vite.js --version
-
       - name: Run tests
         run: node ./node_modules/vitest/vitest.mjs run
 
