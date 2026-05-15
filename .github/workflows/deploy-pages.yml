@@ -36,18 +36,18 @@ jobs:
 
       - name: Verify toolchain
         run: |
-          test -x ./node_modules/.bin/vitest
-          test -x ./node_modules/.bin/tsc
-          test -x ./node_modules/.bin/vite
-          ./node_modules/.bin/vitest --version
-          ./node_modules/.bin/tsc --version
-          ./node_modules/.bin/vite --version
+          test -f ./node_modules/vitest/vitest.mjs
+          test -f ./node_modules/typescript/bin/tsc
+          test -f ./node_modules/vite/bin/vite.js
+          node ./node_modules/vitest/vitest.mjs --version
+          node ./node_modules/typescript/bin/tsc --version
+          node ./node_modules/vite/bin/vite.js --version
 
       - name: Run tests
-        run: npm test
+        run: node ./node_modules/vitest/vitest.mjs run
 
       - name: Build site
-        run: npm run build
+        run: node ./node_modules/typescript/bin/tsc --noEmit && node ./node_modules/vite/bin/vite.js build
 
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
