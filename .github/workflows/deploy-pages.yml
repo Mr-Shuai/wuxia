@@ -21,9 +21,6 @@ jobs:
     env:
       VITE_BASE_PATH: /wuxia/
       NODE_ENV: development
-      NPM_CONFIG_PRODUCTION: 'false'
-      NPM_CONFIG_INCLUDE: dev
-      NPM_CONFIG_OMIT: ''
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -35,10 +32,11 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci --omit=optional
+        run: npm ci --include=dev --production=false
 
       - name: Verify toolchain
         run: |
+          npm ls vitest typescript vite
           ./node_modules/.bin/vitest --version
           ./node_modules/.bin/tsc --version
           ./node_modules/.bin/vite --version
