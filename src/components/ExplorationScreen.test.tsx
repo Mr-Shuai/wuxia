@@ -34,8 +34,10 @@ describe('ExplorationScreen', () => {
 
     expect(screen.getByText('探索 · X11')).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '酒楼暗查' })).toBeInTheDocument()
-    expect(screen.getByText('现场速览')).toBeInTheDocument()
-    expect(screen.getByText('可行动作 2')).toBeInTheDocument()
+    expect(screen.queryByText('现场速览')).not.toBeInTheDocument()
+    expect(screen.queryByText('可行动作 2')).not.toBeInTheDocument()
+    expect(screen.queryByText('完成后回到主线')).not.toBeInTheDocument()
+    expect(screen.queryByText('随身摘要')).not.toBeInTheDocument()
     expect(screen.getByText('可能获得兵刃')).toBeInTheDocument()
     expect(screen.getByText('可能悟出轻身法门')).toBeInTheDocument()
 
@@ -66,7 +68,7 @@ describe('ExplorationScreen', () => {
     await waitFor(() => {
       expect(screen.getByText('探索 · X11')).toBeInTheDocument()
       expect(screen.getAllByText('你把残篇交还，换来一份信任，也让自己站到了更亮的地方。').length).toBeGreaterThan(0)
-      expect(screen.getByText('现场速览')).toBeInTheDocument()
+      expect(screen.queryByText('现场速览')).not.toBeInTheDocument()
       expect(getExplorationActionButton('摸进后厨暗格，看看有没有人藏兵器')).toBeEnabled()
     })
 
@@ -82,10 +84,7 @@ describe('ExplorationScreen', () => {
 
     expect(screen.getByText(/^N11$/)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '酒楼听风' })).toBeInTheDocument()
-    const statusSummaryRow = screen.getByText('当前兵刃').closest('div')
-
-    expect(statusSummaryRow).not.toBeNull()
-    expect(within(statusSummaryRow as HTMLDivElement).getByText('旧铁剑')).toBeInTheDocument()
+    expect(screen.queryByText('当前兵刃')).not.toBeInTheDocument()
     expect(screen.queryByText('章节结算')).not.toBeInTheDocument()
   })
 })

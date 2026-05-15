@@ -52,6 +52,7 @@ export default function ExplorationScreen({
   disableChoices = false,
 }: ExplorationScreenProps) {
   const explorationMood = getExplorationMood(disableChoices, inlineResult)
+  const leadDescription = scene.description[0] ?? ''
 
   return (
     <main className="screen shell two-column exploration-layout">
@@ -61,6 +62,7 @@ export default function ExplorationScreen({
             <p className="eyebrow">探索 · {scene.id}</p>
             <h1>{scene.title}</h1>
             <p className="location">{scene.location}</p>
+            {leadDescription ? <p className="muted exploration-hero-lead">{leadDescription}</p> : null}
           </div>
           <div className="exploration-hero-status">
             <span className={`exploration-phase-badge ${disableChoices ? 'exploration-phase-hold' : 'exploration-phase-open'}`}>
@@ -70,32 +72,13 @@ export default function ExplorationScreen({
           </div>
         </header>
 
-        <section className="story-copy-card exploration-overview-card">
-          <div className="choice-section-header exploration-overview-header">
-            <div>
-              <p className="eyebrow">现场速览</p>
-              <h2>先看环境，再顺着暗线摸下去</h2>
-            </div>
-            <div className="exploration-meta-strip" aria-label="探索概览">
-              <span className="exploration-meta-pill">可行动作 {scene.actions.length}</span>
-              <span className="exploration-meta-pill">完成后回到主线</span>
-            </div>
-          </div>
-
-          <div className="story-copy exploration-copy-card">
-          {scene.description.map((paragraph) => (
-            <p key={paragraph}>{paragraph}</p>
-          ))}
-          </div>
-        </section>
-
         {inlineResult ? (
           <ResultScreen
             eyebrow="探索所得"
-            title="你刚摸到的线索，正在迅速拼成新局面"
+            title=""
             text={inlineResult.text}
-            recentLogs={inlineResult.recentLogs}
             streaming={inlineResult.streaming}
+            className="story-echo-panel"
           />
         ) : null}
 
@@ -125,7 +108,7 @@ export default function ExplorationScreen({
           </div>
         </section>
       </section>
-      <StatusPanel state={state} />
+      <StatusPanel state={state} compact />
     </main>
   )
 }

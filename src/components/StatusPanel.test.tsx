@@ -4,7 +4,7 @@ import StatusPanel from './StatusPanel'
 import { createGameState } from '../game/engine/createGameState'
 
 describe('StatusPanel', () => {
-  it('shows grouped resources, journey stats, and carry summary', () => {
+  it('keeps only the compact core resources needed during the mainline flow', () => {
     const state = createGameState({
       name: '阿青',
       originId: 'wanderer',
@@ -26,11 +26,12 @@ describe('StatusPanel', () => {
     state.martialSkills.push('catwalk-step')
     state.exploredScenes.push('X11:search-kitchen-cache')
 
-    render(<StatusPanel state={state} />)
+    render(<StatusPanel state={state} compact />)
 
     expect(screen.getByText('当前状态')).toBeInTheDocument()
     expect(screen.getByText('核心气血')).toBeInTheDocument()
-    expect(screen.getByText('江湖阅历')).toBeInTheDocument()
+    expect(screen.queryByText('江湖阅历')).not.toBeInTheDocument()
+    expect(screen.queryByText('随身摘要')).not.toBeInTheDocument()
 
     const resources = screen.getByLabelText('核心资源')
     expect(within(resources).getByText('生命')).toBeInTheDocument()
@@ -39,22 +40,5 @@ describe('StatusPanel', () => {
     expect(within(resources).getByText('9/14')).toBeInTheDocument()
     expect(within(resources).getByText('势')).toBeInTheDocument()
     expect(within(resources).getByText('7/11')).toBeInTheDocument()
-
-    const journey = screen.getByLabelText('江湖阅历')
-    expect(within(journey).getByText('侠义')).toBeInTheDocument()
-    const moralityTile = within(journey).getByText('侠义').closest('div')
-    const wantedTile = within(journey).getByText('通缉').closest('div')
-
-    expect(moralityTile).not.toBeNull()
-    expect(wantedTile).not.toBeNull()
-    expect(within(moralityTile as HTMLElement).getByText('3')).toBeInTheDocument()
-    expect(within(wantedTile as HTMLElement).getByText('1')).toBeInTheDocument()
-
-    const summary = screen.getByText('随身摘要').closest('section')
-    expect(summary).not.toBeNull()
-    expect(within(summary as HTMLElement).getByText('当前兵刃')).toBeInTheDocument()
-    expect(within(summary as HTMLElement).getByText('旧铁剑')).toBeInTheDocument()
-    expect(within(summary as HTMLElement).getByText('当前招式')).toBeInTheDocument()
-    expect(within(summary as HTMLElement).getByText('踏栈步')).toBeInTheDocument()
   })
 })

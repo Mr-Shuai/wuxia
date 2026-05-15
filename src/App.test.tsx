@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from './App'
 import { createGameState } from './game/engine/createGameState'
@@ -20,6 +20,63 @@ function seedGameAtNode(nodeId: string) {
   gameState.debt = 2
 
   window.localStorage.setItem('wuxia-save', JSON.stringify({ gameState }))
+}
+
+function seedOverlayAccessGameAtNode(nodeId: string) {
+  const gameState = createGameState({
+    name: '阿青',
+    originId: 'escort',
+    talentId: 'iron-bone',
+  })
+
+  gameState.currentNodeId = nodeId
+  gameState.visitedNodes = ['N00', 'N10', 'N11', nodeId]
+  gameState.chapterLogs = [
+    '你踏入了风雨欲来的江湖。',
+    '你冒雨生火，为密探止了血，也欠下了一段人情。',
+    '你把残篇交还，换来一份信任，也让自己站到了更亮的地方。',
+  ]
+  gameState.inventory = ['old-iron-sword']
+  gameState.activeWeaponId = 'old-iron-sword'
+  gameState.martialSkills = ['catwalk-step']
+
+  window.localStorage.setItem('wuxia-save', JSON.stringify({ gameState }))
+}
+
+function getQuickAccessButton() {
+  return screen.getByRole('button', { name: '江湖随览' })
+}
+
+function mockReducedMotionPreference(matches: boolean) {
+  const originalMatchMedia = window.matchMedia
+
+  Object.defineProperty(window, 'matchMedia', {
+    configurable: true,
+    writable: true,
+    value: (query: string) => ({
+      matches: matches && query === '(prefers-reduced-motion: reduce)',
+      media: query,
+      onchange: null,
+      addEventListener: () => {},
+      removeEventListener: () => {},
+      addListener: () => {},
+      removeListener: () => {},
+      dispatchEvent: () => false,
+    }),
+  })
+
+  return () => {
+    if (originalMatchMedia) {
+      Object.defineProperty(window, 'matchMedia', {
+        configurable: true,
+        writable: true,
+        value: originalMatchMedia,
+      })
+      return
+    }
+
+    Reflect.deleteProperty(window, 'matchMedia')
+  }
 }
 
 describe('App', () => {
@@ -54,6 +111,27 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: '踏入江湖' }))
 
     expect(window.localStorage.getItem('wuxia-save')).toContain('N00')
+  })
+
+  it('shows inline narration immediately when reduced motion is preferred', async () => {
+    const restoreMatchMedia = mockReducedMotionPreference(true)
+    const user = userEvent.setup()
+
+    try {
+      render(<App />)
+
+      await user.click(screen.getByRole('button', { name: '开始江湖' }))
+      await user.type(screen.getByLabelText('角色名'), '阿青')
+      await user.click(screen.getByRole('button', { name: '江湖浪客' }))
+      await user.click(screen.getByRole('button', { name: '稳心' }))
+      await user.click(screen.getByRole('button', { name: '踏入江湖' }))
+      await user.click(screen.getByRole('button', { name: '收留并救治密探' }))
+
+      expect(screen.getByText('你冒雨生火，为密探止了血，也欠下了一段人情。')).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: '把残篇交回镖局' })).toBeEnabled()
+    } finally {
+      restoreMatchMedia()
+    }
   })
 
   it('plays an expanded non-battle route from N12 through chapter summary into the true righteous ending', async () => {
@@ -336,6 +414,155 @@ describe('App', () => {
       expect(screen.getByText(/^N11$/)).toBeInTheDocument()
       expect(screen.getByRole('button', { name: '借燕行步翻上横梁，从高处看清谁在传递暗号' })).toBeEnabled()
     })
+  })
+
+  it('shows the quick access button only on game phases', async () => {
+    const user = userEvent.setup()
+
+    render(<App />)
+
+    expect(screen.queryByRole('button', { name: '江湖随览' })).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: '开始江湖' }))
+    expect(screen.queryByRole('button', { name: '江湖随览' })).not.toBeInTheDocument()
+
+    await user.type(screen.getByLabelText('角色名'), '阿青')
+    await user.click(screen.getByRole('button', { name: '江湖浪客' }))
+    await user.click(screen.getByRole('button', { name: '稳心' }))
+    await user.click(screen.getByRole('button', { name: '踏入江湖' }))
+
+    expect(getQuickAccessButton()).toBeInTheDocument()
+  })
+
+  it('opens overlay on tasks tab by default and switches among populated task, status, and inventory panels', async () => {
+    const user = userEvent.setup()
+
+    seedOverlayAccessGameAtNode('N11')
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: '继续游戏' }))
+    await user.click(getQuickAccessButton())
+
+    const dialog = screen.getByRole('dialog', { name: '江湖随览' })
+    expect(dialog.querySelector('.game-overlay-shell')).not.toBeNull()
+    const tasksTab = within(dialog).getByRole('tab', { name: '任务', selected: true })
+    const panel = within(dialog).getByRole('tabpanel')
+
+    expect(tasksTab).toHaveAttribute('id')
+    expect(tasksTab).toHaveAttribute('aria-controls')
+    expect(panel).toHaveAttribute('aria-labelledby', tasksTab.id)
+    expect(panel).toHaveAttribute('id', tasksTab.getAttribute('aria-controls'))
+    expect(panel.firstElementChild).toHaveClass('task-overview-panel')
+    expect(within(panel).getByRole('heading', { name: '当前目标' })).toBeInTheDocument()
+    expect(within(panel).getByText('酒楼听风')).toBeInTheDocument()
+    expect(within(panel).getByText('地点：临江酒楼')).toBeInTheDocument()
+    expect(within(panel).getByRole('heading', { name: '最近线索' })).toBeInTheDocument()
+
+    await user.click(within(dialog).getByRole('tab', { name: '状态' }))
+    const statusTab = within(dialog).getByRole('tab', { name: '状态', selected: true })
+    expect(statusTab).toHaveAttribute('id')
+    expect(statusTab).toHaveAttribute('aria-controls')
+    const statusPanel = within(dialog).getByRole('tabpanel')
+    expect(statusPanel).toHaveAttribute('aria-labelledby', statusTab.id)
+    expect(statusPanel.firstElementChild).toHaveClass('status-overview-panel')
+    expect(within(statusPanel).getByRole('heading', { name: '核心资源' })).toBeInTheDocument()
+    expect(within(statusPanel).getByRole('heading', { name: '江湖阅历' })).toBeInTheDocument()
+    expect(within(statusPanel).getByRole('heading', { name: '当前配置' })).toBeInTheDocument()
+    expect(within(statusPanel).getByText('旧铁剑')).toBeInTheDocument()
+    expect(within(statusPanel).getByText('踏栈步')).toBeInTheDocument()
+
+    await user.click(within(dialog).getByRole('tab', { name: '背包' }))
+    const inventoryTab = within(dialog).getByRole('tab', { name: '背包', selected: true })
+    expect(inventoryTab).toHaveAttribute('id')
+    expect(inventoryTab).toHaveAttribute('aria-controls')
+    const inventoryPanel = within(dialog).getByRole('tabpanel')
+    expect(inventoryPanel).toHaveAttribute('aria-labelledby', inventoryTab.id)
+    expect(inventoryPanel.firstElementChild).toHaveClass('inventory-overview-panel')
+    expect(within(inventoryPanel).getByRole('heading', { name: '当前兵刃' })).toBeInTheDocument()
+    expect(within(inventoryPanel).getByRole('heading', { name: '背包物件' })).toBeInTheDocument()
+    expect(within(inventoryPanel).getByRole('heading', { name: '已学武学' })).toBeInTheDocument()
+    expect(within(inventoryPanel).getAllByText('旧铁剑')).toHaveLength(2)
+    expect(within(inventoryPanel).getByText('踏栈步')).toBeInTheDocument()
+  })
+
+  it('supports keyboard navigation across overlay tabs', async () => {
+    const user = userEvent.setup()
+
+    seedOverlayAccessGameAtNode('N11')
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: '继续游戏' }))
+    await user.click(getQuickAccessButton())
+
+    const dialog = screen.getByRole('dialog', { name: '江湖随览' })
+    const tasksTab = within(dialog).getByRole('tab', { name: '任务', selected: true })
+
+    tasksTab.focus()
+    expect(tasksTab).toHaveFocus()
+
+    await user.keyboard('{ArrowRight}')
+    expect(within(dialog).getByRole('tab', { name: '状态', selected: true })).toHaveFocus()
+
+    await user.keyboard('{End}')
+    expect(within(dialog).getByRole('tab', { name: '背包', selected: true })).toHaveFocus()
+
+    await user.keyboard('{Home}')
+    expect(within(dialog).getByRole('tab', { name: '任务', selected: true })).toHaveFocus()
+  })
+
+  it('closes the overlay via close button, backdrop, and escape', async () => {
+    const user = userEvent.setup()
+
+    seedOverlayAccessGameAtNode('N11')
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: '继续游戏' }))
+
+    await user.click(getQuickAccessButton())
+    await user.click(screen.getByRole('button', { name: '关闭江湖随览' }))
+    expect(screen.queryByRole('dialog', { name: '江湖随览' })).not.toBeInTheDocument()
+
+    await user.click(getQuickAccessButton())
+    await user.click(screen.getByTestId('overlay-backdrop'))
+    expect(screen.queryByRole('dialog', { name: '江湖随览' })).not.toBeInTheDocument()
+
+    await user.click(getQuickAccessButton())
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog', { name: '江湖随览' })).not.toBeInTheDocument()
+  })
+
+  it('moves focus into the overlay, traps tab navigation, and restores focus to the trigger on close', async () => {
+    const user = userEvent.setup()
+
+    seedOverlayAccessGameAtNode('N11')
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: '继续游戏' }))
+
+    const quickAccessButton = getQuickAccessButton()
+    quickAccessButton.focus()
+    expect(quickAccessButton).toHaveFocus()
+
+    await user.keyboard('{Enter}')
+
+    const dialog = screen.getByRole('dialog', { name: '江湖随览' })
+    expect(dialog.contains(document.activeElement)).toBe(true)
+
+    const closeButton = within(dialog).getByRole('button', { name: '关闭江湖随览' })
+    expect(closeButton).toHaveFocus()
+
+    await user.tab({ shift: true })
+    expect(within(dialog).getByRole('tab', { name: '任务', selected: true })).toHaveFocus()
+
+    for (let index = 0; index < 6; index += 1) {
+      await user.tab()
+      expect(dialog.contains(document.activeElement)).toBe(true)
+      expect(quickAccessButton).not.toHaveFocus()
+    }
+
+    await user.keyboard('{Escape}')
+    expect(screen.queryByRole('dialog', { name: '江湖随览' })).not.toBeInTheDocument()
+    expect(quickAccessButton).toHaveFocus()
   })
 
   it('shows an extra righteous verdict option at N31 after winning the N30 battle', async () => {

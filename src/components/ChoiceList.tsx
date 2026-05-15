@@ -23,7 +23,10 @@ export default function ChoiceList({ choices, onChoose, disabled = false }: Choi
             <span className="choice-card-route">推进至 {choice.nextNodeId}</span>
             {choice.battleId ? <span className="choice-card-chip">战斗</span> : null}
           </span>
-          <span className="choice-card-text">{choice.text}</span>
+          <span className="choice-card-main">
+            <span className="choice-card-text">{choice.text}</span>
+            <span className="choice-card-arrow" aria-hidden="true">→</span>
+          </span>
           <span className="choice-card-bottomline">
             {choice.requires?.martialSkills?.map((skillId) => (
               <span key={skillId} className="choice-card-chip choice-card-chip-muted">
