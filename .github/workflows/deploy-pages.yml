@@ -41,7 +41,7 @@ jobs:
           ls -la node_modules | head -50
           ls -la node_modules/vitest || true
           test -f ./node_modules/vitest/vitest.mjs
-          node ./node_modules/vitest/vitest.mjs run
+          node ./node_modules/vitest/vitest.mjs run --no-file-parallelism
 
       - name: Build site
         run: node ./node_modules/typescript/bin/tsc --noEmit && node ./node_modules/vite/bin/vite.js build
