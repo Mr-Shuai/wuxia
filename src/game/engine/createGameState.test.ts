@@ -30,4 +30,19 @@ describe('createGameState', () => {
     expect(state.exploredScenes).toEqual([])
     expect(state.activeWeaponId).toBeUndefined()
   })
+
+  it('initializes silver and free exploration state fields', () => {
+    const state = createGameState({
+      name: '阿青',
+      originId: 'wanderer',
+      talentId: 'steady-heart',
+    })
+
+    expect(state.silver).toBe(12)
+    expect(state.currentExplorationMapId).toBeUndefined()
+    expect(state.explorationReturnNodeId).toBeUndefined()
+    expect(state.completedMapNodes).toEqual([])
+    expect(state.purchasedShopItems).toEqual([])
+    expect(state.completedSideQuests).toEqual([])
+  })
 })

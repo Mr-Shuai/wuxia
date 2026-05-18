@@ -45,7 +45,9 @@ export default function StoryScreen({
           </div>
         </section>
 
-        <section className={`story-focus-grid${inlineResult ? '' : ' story-focus-grid-single'}`}>
+        <section
+          className={`story-focus-grid${inlineResult ? ' story-focus-grid-with-echo' : ' story-focus-grid-single'}`}
+        >
           <div className="story-copy story-copy-card story-copy-card-compact">
             <div className="story-copy-header">
               <p className="eyebrow">{node.id}</p>
@@ -63,7 +65,7 @@ export default function StoryScreen({
               eyebrow="江湖回声"
               title=""
               text={inlineResult.text}
-              className="story-echo-panel"
+              className="story-echo-panel story-echo-panel-narrow"
               streaming={inlineResult.streaming}
             />
           ) : null}

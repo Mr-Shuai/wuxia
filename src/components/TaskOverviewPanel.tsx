@@ -1,4 +1,5 @@
 import { endings } from '../game/data/endings'
+import { explorationMaps } from '../game/data/explorationMaps'
 import { explorationScenes } from '../game/data/exploration'
 import { storyNodes } from '../game/data/story'
 import type { GamePhase, GameState } from '../game/types'
@@ -41,11 +42,16 @@ function getPhaseLabel(phase: GamePhase) {
 }
 
 export default function TaskOverviewPanel({ phase, state }: TaskOverviewPanelProps) {
+  const explorationMap = state.currentExplorationMapId ? explorationMaps[state.currentExplorationMapId] : undefined
   const storyNode = storyNodes[state.currentNodeId]
   const explorationNode = explorationScenes[state.currentNodeId]
   const ending = endings.find((item) => item.id === state.currentNodeId)
-  const title = storyNode?.title ?? explorationNode?.title ?? ending?.title ?? state.currentNodeId
-  const location = storyNode?.location ?? explorationNode?.location ?? '江湖未明之地'
+  const title = phase === 'exploration'
+    ? explorationMap?.title ?? storyNode?.title ?? explorationNode?.title ?? ending?.title ?? state.currentNodeId
+    : storyNode?.title ?? explorationNode?.title ?? ending?.title ?? state.currentNodeId
+  const location = phase === 'exploration'
+    ? explorationMap?.location ?? storyNode?.location ?? explorationNode?.location ?? '江湖未明之地'
+    : storyNode?.location ?? explorationNode?.location ?? '江湖未明之地'
   const recentLogs = state.chapterLogs.slice(-3).reverse()
 
   return (

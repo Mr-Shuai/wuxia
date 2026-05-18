@@ -153,11 +153,27 @@ describe('App', () => {
 
     expect(screen.queryByText('章节结算')).not.toBeInTheDocument()
     await waitFor(() => {
-      expect(screen.getByText('探索 · X11')).toBeInTheDocument()
-      expect(getExplorationActionButton('摸进后厨暗格，看看有没有人藏兵器')).toBeEnabled()
+      expect(screen.getByText('探索 · X11M')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: '酒楼暗查图' })).toBeInTheDocument()
+      expect(getExplorationActionButton('说书台角落')).toBeEnabled()
     })
 
-    await user.click(getExplorationActionButton('摸进后厨暗格，看看有没有人藏兵器'))
+    await user.click(getExplorationActionButton('说书台角落'))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '搜查此处' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '搜查此处' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: '酒楼暗查图' })).toBeInTheDocument()
+      expect(getExplorationActionButton('收束行程')).toBeEnabled()
+    })
+
+    await user.click(getExplorationActionButton('收束行程'))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '结束探索并返回主线' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '结束探索并返回主线' }))
 
     await waitFor(() => {
       expect(screen.getByText(/^N11$/)).toBeInTheDocument()
@@ -175,11 +191,27 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: '入清正剑宗，换一条正路' }))
 
     await waitFor(() => {
-      expect(screen.getByText('探索 · X20')).toBeInTheDocument()
-      expect(getExplorationActionButton('翻查黑船边角货箱，看看有没有顺手兵刃')).toBeEnabled()
+      expect(screen.getByText('探索 · X20M')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: '渡口搜线图' })).toBeInTheDocument()
+      expect(getExplorationActionButton('黑船货箱')).toBeEnabled()
     })
 
-    await user.click(getExplorationActionButton('翻查黑船边角货箱，看看有没有顺手兵刃'))
+    await user.click(getExplorationActionButton('黑船货箱'))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '搜查此处' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '搜查此处' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: '渡口搜线图' })).toBeInTheDocument()
+      expect(getExplorationActionButton('收束行程')).toBeEnabled()
+    })
+
+    await user.click(getExplorationActionButton('收束行程'))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '结束探索并返回主线' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '结束探索并返回主线' }))
 
     await waitFor(() => {
       expect(screen.getByText(/^N20$/)).toBeInTheDocument()
@@ -294,11 +326,27 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: '护送巡按与口供南下，趁官路未断先夺回盐引旧册' }))
 
     await waitFor(() => {
-      expect(screen.getByText('探索 · X100')).toBeInTheDocument()
-      expect(getExplorationActionButton('沿潮湿高栈试步，记牢跨桥换位的落脚点')).toBeEnabled()
+      expect(screen.getByText('探索 · X100M')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: '盐港封闸图' })).toBeInTheDocument()
+      expect(getExplorationActionButton('吊脚廊桥')).toBeEnabled()
     })
 
-    await user.click(getExplorationActionButton('沿潮湿高栈试步，记牢跨桥换位的落脚点'))
+    await user.click(getExplorationActionButton('吊脚廊桥'))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '试步习得' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '试步习得' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('heading', { name: '盐港封闸图' })).toBeInTheDocument()
+      expect(getExplorationActionButton('收束行程')).toBeEnabled()
+    })
+
+    await user.click(getExplorationActionButton('收束行程'))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '结束探索并返回主线' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '结束探索并返回主线' }))
 
     await waitFor(() => {
       expect(screen.getByText(/^N110$/)).toBeInTheDocument()
@@ -341,11 +389,25 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: '把残篇交回镖局' }))
 
     await waitFor(() => {
-      expect(screen.getByText('探索 · X11')).toBeInTheDocument()
-      expect(getExplorationActionButton('摸进后厨暗格，看看有没有人藏兵器')).toBeEnabled()
+      expect(screen.getByText('探索 · X11M')).toBeInTheDocument()
+      expect(getExplorationActionButton('说书台角落')).toBeEnabled()
     })
 
-    await user.click(getExplorationActionButton('摸进后厨暗格，看看有没有人藏兵器'))
+    await user.click(getExplorationActionButton('说书台角落'))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '搜查此处' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '搜查此处' }))
+
+    await waitFor(() => {
+      expect(getExplorationActionButton('收束行程')).toBeEnabled()
+    })
+
+    await user.click(getExplorationActionButton('收束行程'))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '结束探索并返回主线' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '结束探索并返回主线' }))
 
     await waitFor(() => {
       expect(screen.getByText(/^N11$/)).toBeInTheDocument()
@@ -359,11 +421,25 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: '仍做江湖浪客，把路留给自己' }))
 
     await waitFor(() => {
-      expect(screen.getByText('探索 · X20')).toBeInTheDocument()
-      expect(getExplorationActionButton('翻查黑船边角货箱，看看有没有顺手兵刃')).toBeEnabled()
+      expect(screen.getByText('探索 · X20M')).toBeInTheDocument()
+      expect(getExplorationActionButton('黑船货箱')).toBeEnabled()
     })
 
-    await user.click(getExplorationActionButton('翻查黑船边角货箱，看看有没有顺手兵刃'))
+    await user.click(getExplorationActionButton('黑船货箱'))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '搜查此处' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '搜查此处' }))
+
+    await waitFor(() => {
+      expect(getExplorationActionButton('收束行程')).toBeEnabled()
+    })
+
+    await user.click(getExplorationActionButton('收束行程'))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '结束探索并返回主线' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '结束探索并返回主线' }))
 
     await waitFor(() => {
       expect(screen.getByText(/^N20$/)).toBeInTheDocument()
@@ -405,15 +481,196 @@ describe('App', () => {
     await user.click(screen.getByRole('button', { name: '把残篇交回镖局' }))
 
     await waitFor(() => {
-      expect(getExplorationActionButton('沿梁试步，记下高处换位的落点')).toBeEnabled()
+      expect(screen.getByText('探索 · X11M')).toBeInTheDocument()
+      expect(getExplorationActionButton('横梁试步')).toBeEnabled()
     })
 
-    await user.click(getExplorationActionButton('沿梁试步，记下高处换位的落点'))
+    await user.click(getExplorationActionButton('横梁试步'))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '试步习得' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '试步习得' }))
+
+    await waitFor(() => {
+      expect(getExplorationActionButton('收束行程')).toBeEnabled()
+    })
+
+    await user.click(getExplorationActionButton('收束行程'))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '结束探索并返回主线' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '结束探索并返回主线' }))
 
     await waitFor(() => {
       expect(screen.getByText(/^N11$/)).toBeInTheDocument()
       expect(screen.getByRole('button', { name: '借燕行步翻上横梁，从高处看清谁在传递暗号' })).toBeEnabled()
     })
+  })
+
+  it('stays inside the exploration map until the player chooses to return', async () => {
+    const user = userEvent.setup()
+
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: '开始江湖' }))
+    await user.type(screen.getByLabelText('角色名'), '阿青')
+    await user.click(screen.getByRole('button', { name: '江湖浪客' }))
+    await user.click(screen.getByRole('button', { name: '稳心' }))
+    await user.click(screen.getByRole('button', { name: '踏入江湖' }))
+
+    await user.click(screen.getByRole('button', { name: '收留并救治密探' }))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '把残篇交回镖局' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '把残篇交回镖局' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('探索 · X11M')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: '酒楼暗查图' })).toBeInTheDocument()
+      expect(getExplorationActionButton('说书台角落')).toBeEnabled()
+    })
+
+    await user.click(getExplorationActionButton('说书台角落'))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '搜查此处' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '搜查此处' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('探索 · X11M')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: '酒楼暗查图' })).toBeInTheDocument()
+      expect(screen.queryByRole('heading', { name: '酒楼听风' })).not.toBeInTheDocument()
+      expect(getExplorationActionButton('收束行程')).toBeEnabled()
+    })
+
+    await user.click(getExplorationActionButton('收束行程'))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '结束探索并返回主线' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '结束探索并返回主线' }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/^N11$/)).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: '酒楼听风' })).toBeInTheDocument()
+    })
+  })
+
+  it('preserves the current story node until the player leaves an exploration map', async () => {
+    const user = userEvent.setup()
+
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: '开始江湖' }))
+    await user.type(screen.getByLabelText('角色名'), '阿青')
+    await user.click(screen.getByRole('button', { name: '江湖浪客' }))
+    await user.click(screen.getByRole('button', { name: '稳心' }))
+    await user.click(screen.getByRole('button', { name: '踏入江湖' }))
+
+    await user.click(screen.getByRole('button', { name: '收留并救治密探' }))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '把残篇交回镖局' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '把残篇交回镖局' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('探索 · X11M')).toBeInTheDocument()
+      const savedState = JSON.parse(window.localStorage.getItem('wuxia-save') ?? '{}').gameState
+      expect(savedState.currentExplorationMapId).toBe('X11M')
+      expect(savedState.currentNodeId).toBe('N10')
+    })
+
+    await waitFor(() => {
+      expect(getExplorationActionButton('收束行程')).toBeEnabled()
+    })
+
+    await user.click(getExplorationActionButton('收束行程'))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '结束探索并返回主线' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '结束探索并返回主线' }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/^N11$/)).toBeInTheDocument()
+      const savedState = JSON.parse(window.localStorage.getItem('wuxia-save') ?? '{}').gameState
+      expect(savedState.currentExplorationMapId).toBeUndefined()
+      expect(savedState.currentNodeId).toBe('N11')
+    })
+  })
+
+  it('keeps catwalk-step after learning it in X100M and leaving the map', async () => {
+    const user = userEvent.setup()
+
+    seedGameAtNode('N100')
+
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: '继续游戏' }))
+
+    await waitFor(() => {
+      expect(screen.getByText(/^N100$/)).toBeInTheDocument()
+      expect(screen.getByRole('button', { name: '护送巡按与口供南下，趁官路未断先夺回盐引旧册' })).toBeEnabled()
+    })
+
+    await user.click(screen.getByRole('button', { name: '护送巡按与口供南下，趁官路未断先夺回盐引旧册' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('探索 · X100M')).toBeInTheDocument()
+      expect(getExplorationActionButton('吊脚廊桥')).toBeEnabled()
+    })
+
+    await user.click(getExplorationActionButton('吊脚廊桥'))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '试步习得' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '试步习得' }))
+
+    await waitFor(() => {
+      const savedState = JSON.parse(window.localStorage.getItem('wuxia-save') ?? '{}').gameState
+      expect(savedState.martialSkills).toContain('catwalk-step')
+    })
+
+    await user.click(getExplorationActionButton('收束行程'))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '结束探索并返回主线' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '结束探索并返回主线' }))
+
+    await waitFor(() => {
+      const savedState = JSON.parse(window.localStorage.getItem('wuxia-save') ?? '{}').gameState
+      expect(savedState.currentNodeId).toBe('N110')
+      expect(savedState.currentExplorationMapId).toBeUndefined()
+      expect(savedState.martialSkills).toContain('catwalk-step')
+    })
+  })
+
+  it('shows the active exploration map in the quick access tasks overlay during map exploration', async () => {
+    const user = userEvent.setup()
+
+    render(<App />)
+
+    await user.click(screen.getByRole('button', { name: '开始江湖' }))
+    await user.type(screen.getByLabelText('角色名'), '阿青')
+    await user.click(screen.getByRole('button', { name: '江湖浪客' }))
+    await user.click(screen.getByRole('button', { name: '稳心' }))
+    await user.click(screen.getByRole('button', { name: '踏入江湖' }))
+    await user.click(screen.getByRole('button', { name: '收留并救治密探' }))
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '把残篇交回镖局' })).toBeEnabled()
+    })
+
+    await user.click(screen.getByRole('button', { name: '把残篇交回镖局' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('探索 · X11M')).toBeInTheDocument()
+    })
+
+    await user.click(getQuickAccessButton())
+
+    const dialog = screen.getByRole('dialog', { name: '江湖随览' })
+
+    expect(within(dialog).getByText('酒楼暗查图')).toBeInTheDocument()
+    expect(within(dialog).getByText('地点：临江酒楼后场')).toBeInTheDocument()
   })
 
   it('shows the quick access button only on game phases', async () => {

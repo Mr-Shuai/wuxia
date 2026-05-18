@@ -75,6 +75,11 @@ describe('StoryScreen', () => {
       />, 
     )
 
+    const focusGrid = document.querySelector('.story-focus-grid')
+    const echoPanel = screen.getByText('江湖回声').closest('section')
+
+    expect(focusGrid).toHaveClass('story-focus-grid-with-echo')
+    expect(echoPanel).toHaveClass('story-echo-panel-narrow')
     expect(screen.getByText('江湖回声')).toBeInTheDocument()
     expect(screen.queryByText('最近动向')).not.toBeInTheDocument()
   })

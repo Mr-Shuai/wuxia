@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useMemo, useState } from 'react'
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import BattleScreen from './components/BattleScreen'
 import CharacterCreateScreen from './components/CharacterCreateScreen'
 import EndingScreen from './components/EndingScreen'
@@ -10,11 +10,11 @@ import StatusOverviewPanel from './components/StatusOverviewPanel'
 import StartScreen from './components/StartScreen'
 import StoryScreen from './components/StoryScreen'
 import TaskOverviewPanel from './components/TaskOverviewPanel'
-import { explorationScenes } from './game/data/exploration'
+import { explorationMaps } from './game/data/explorationMaps'
 import { endings } from './game/data/endings'
 import { createBattleState, runBattleTurn } from './game/engine/battleEngine'
 import { createGameState } from './game/engine/createGameState'
-import { applyExplorationAction } from './game/engine/explorationEngine'
+import { applyMapNodeAction, enterExplorationMap, leaveExplorationMap } from './game/engine/explorationEngine'
 import { clearGame, loadGame, saveGame } from './game/engine/storage'
 import { applyChoice, resolveEnding } from './game/engine/storyEngine'
 import type { BattleState, GamePhase, GameState, PlayerAction, StoryChoice } from './game/types'
@@ -26,21 +26,23 @@ interface InlineNarrationState {
 }
 
 const explorationEntryByNode: Record<string, string> = {
-  N11: 'X11',
-  N20: 'X20',
-  N110: 'X100',
+  N11: 'X11M',
+  N20: 'X20M',
+  N110: 'X100M',
+}
+
+const legacySceneToMapId: Record<string, string> = {
+  X11: 'X11M',
+  X20: 'X20M',
+  X100: 'X100M',
 }
 
 function isEndingNodeId(nodeId: string) {
   return endings.some((item) => item.id === nodeId)
 }
 
-function isExplorationSceneId(nodeId: string) {
-  return nodeId in explorationScenes
-}
-
-function hasExploredScene(state: GameState, sceneId: string) {
-  return state.exploredScenes.some((key) => key.startsWith(`${sceneId}:`))
+function isExplorationMapId(mapId: string) {
+  return mapId in explorationMaps
 }
 
 function applyBattleOutcome(
@@ -117,6 +119,7 @@ export default function App() {
   const [hasSave, setHasSave] = useState(false)
   const [isOverlayOpen, setIsOverlayOpen] = useState(false)
   const [activeOverlayTab, setActiveOverlayTab] = useState<OverlayTab>('tasks')
+  const gameStateRef = useRef<GameState | null>(gameState)
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(() => {
     if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
       return false
@@ -134,6 +137,15 @@ export default function App() {
     setIsOverlayOpen(false)
     setActiveOverlayTab('tasks')
   }
+
+  function commitGameState(next: GameState | null) {
+    gameStateRef.current = next
+    setGameState(next)
+  }
+
+  useEffect(() => {
+    gameStateRef.current = gameState
+  }, [gameState])
 
   useEffect(() => {
     const snapshot = loadGame()
@@ -290,30 +302,26 @@ export default function App() {
           const restored = snapshot.gameState
           setInlineNarration(null)
 
-          if (isExplorationSceneId(restored.currentNodeId)) {
-            const sceneId = restored.currentNodeId
-            const storyNodeId = Object.entries(explorationEntryByNode).find(([, value]) => value === sceneId)?.[0]
-
-            if (storyNodeId && hasExploredScene(restored, sceneId)) {
-              setGameState({
-                ...restored,
-                currentNodeId: storyNodeId,
-              })
-              setPhase(isEndingNodeId(storyNodeId) ? 'ending' : 'story')
-              return
-            }
-
-            setGameState(restored)
+          if (isExplorationMapId(restored.currentExplorationMapId ?? '')) {
+            commitGameState(restored)
             setPhase('exploration')
             return
           }
 
-          setGameState(restored)
+          const mappedMapId = legacySceneToMapId[restored.currentNodeId]
+
+          if (mappedMapId) {
+            commitGameState(enterExplorationMap(restored, mappedMapId))
+            setPhase('exploration')
+            return
+          }
+
+          commitGameState(restored)
           setPhase(isEndingNodeId(restored.currentNodeId) ? 'ending' : 'story')
         } : undefined}
         onReset={hasSave ? () => {
           clearGame()
-          setGameState(null)
+          commitGameState(null)
           setBattleState(null)
           setPendingBattleChoice(null)
           setInlineNarration(null)
@@ -326,7 +334,7 @@ export default function App() {
   if (phase === 'create') {
     return <CharacterCreateScreen onSubmit={(payload) => {
       setInlineNarration(null)
-      setGameState(createGameState(payload))
+      commitGameState(createGameState(payload))
       setPhase('story')
     }} />
   }
@@ -338,26 +346,27 @@ export default function App() {
 
         if (choice.battleId) {
           setInlineNarration(null)
-          setGameState(next)
+          commitGameState(next)
           setPendingBattleChoice(choice)
           setBattleState(createBattleState(next, choice.battleId))
           setPhase('battle')
           return
         }
 
-        const explorationSceneId = explorationEntryByNode[choice.nextNodeId]
+        const explorationMapId = explorationEntryByNode[choice.nextNodeId]
 
-        if (explorationSceneId && !hasExploredScene(next, explorationSceneId)) {
-          setGameState({
+        if (explorationMapId) {
+          commitGameState(enterExplorationMap({
             ...next,
-            currentNodeId: explorationSceneId,
-          })
+            currentNodeId: gameState.currentNodeId,
+            visitedNodes: [...gameState.visitedNodes],
+          }, explorationMapId))
           startInlineNarration('exploration', choice.effects.log)
           setPhase('exploration')
           return
         }
 
-        setGameState(next)
+        commitGameState(next)
 
         if (isEndingNodeId(choice.nextNodeId)) {
           setInlineNarration(null)
@@ -370,16 +379,47 @@ export default function App() {
     )
   }
 
-  if (phase === 'exploration' && gameState) {
-    const scene = explorationScenes[gameState.currentNodeId]
+  if (phase === 'exploration' && gameState?.currentExplorationMapId) {
+    const map = explorationMaps[gameState.currentExplorationMapId]
 
     return renderWithQuickAccess(
-      <ExplorationScreen state={gameState} scene={scene} inlineResult={explorationInlineResult} disableChoices={explorationInlineResult?.streaming} onChoose={(action) => {
-        const next = applyExplorationAction(gameState, scene.id, action.id)
-        setGameState(next)
-        startInlineNarration('story', action.log)
-        setPhase(isEndingNodeId(action.nextNodeId) ? 'ending' : 'story')
-      }} />,
+      <ExplorationScreen
+        state={gameState}
+        map={map}
+        inlineResult={explorationInlineResult}
+        disableChoices={explorationInlineResult?.streaming}
+        onNodeAction={(nodeId, shopItemId) => {
+          const node = map.nodes.find((item) => item.id === nodeId)
+          const activeState = gameStateRef.current
+
+          if (!node || !activeState) {
+            return
+          }
+
+          if (node.type === 'exit') {
+            const next = leaveExplorationMap(activeState)
+            commitGameState(next)
+            startInlineNarration('story', '你把一路探得的线索收拢在心，转身回到了主线要紧处。')
+            setPhase(isEndingNodeId(next.currentNodeId) ? 'ending' : 'story')
+            return
+          }
+
+          const shopItem = node.shopItems?.find((item) => item.id === shopItemId)
+          const next = applyMapNodeAction(activeState, map.id, node.id, shopItemId)
+          commitGameState(next)
+          const narration = node.type === 'shop' && shopItem
+            ? next === activeState
+              ? activeState.purchasedShopItems.includes(shopItem.id)
+                ? `你在${node.title}前又看了一圈，这样东西已经拿过，不必再多花银两。`
+                : activeState.silver < shopItem.price
+                  ? `你在${node.title}盘算了一番，银两还不够，只好先记下这笔买卖。`
+                  : `你在${node.title}转了一圈，暂时没有新的收获。`
+              : `你在${node.title}花了${shopItem.price}两，换得${shopItem.name}，仍留在地图中继续探查。`
+            : next.chapterLogs[next.chapterLogs.length - 1] ?? node.log ?? node.quest?.log ?? node.description
+
+          startInlineNarration('exploration', narration)
+        }}
+      />,
     )
   }
 
@@ -391,7 +431,7 @@ export default function App() {
 
         if (nextBattle.outcome !== 'ongoing') {
           const outcome = applyBattleOutcome(gameState, nextBattle, pendingBattleChoice)
-          setGameState(outcome.nextState)
+          commitGameState(outcome.nextState)
           startInlineNarration('battle', outcome.text)
         }
       }} onContinue={battleInlineResult && !battleInlineResult.streaming ? () => {
@@ -406,21 +446,23 @@ export default function App() {
   if (phase === 'ending' && gameState && ending) {
     return renderWithQuickAccess(
       <EndingScreen ending={ending} state={gameState} onContinue={ending.nextNodeId ? () => {
-        setGameState((current) => {
-          if (!current || !ending.nextNodeId) return current
+        const current = gameStateRef.current
 
-          return {
+        if (!current || !ending.nextNodeId) {
+          return
+        }
+
+        commitGameState({
             ...current,
             currentNodeId: ending.nextNodeId,
             visitedNodes: [...current.visitedNodes, ending.nextNodeId],
             chapterLogs: [...current.chapterLogs, `你带着“${ending.title}”的余波继续前行。`],
-          }
         })
         setInlineNarration(null)
         setPhase('story')
       } : undefined} onRestart={() => {
         clearGame()
-        setGameState(null)
+        commitGameState(null)
         setBattleState(null)
         setPendingBattleChoice(null)
         setInlineNarration(null)

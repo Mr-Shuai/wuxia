@@ -7,6 +7,7 @@ export interface GameState {
   name: string
   origin: OriginId
   talent: TalentId
+  silver: number
   maxHp: number
   hp: number
   maxQi: number
@@ -25,6 +26,11 @@ export interface GameState {
   martialSkills: string[]
   exploredScenes: string[]
   activeWeaponId?: string
+  currentExplorationMapId?: string
+  explorationReturnNodeId?: string
+  completedMapNodes: string[]
+  purchasedShopItems: string[]
+  completedSideQuests: string[]
   currentNodeId: string
   visitedNodes: string[]
   flags: Record<string, boolean>
@@ -43,6 +49,46 @@ export interface WeaponDefinition {
   description: string
   attackBonus: number
   defenseBonus?: number
+}
+
+export interface ShopItemDefinition {
+  id: string
+  name: string
+  description: string
+  price: number
+  reward: ExplorationReward
+  once?: boolean
+}
+
+export interface SideQuestDefinition {
+  id: string
+  title: string
+  description: string
+  log: string
+  reward?: ExplorationReward
+  effects?: ChoiceEffects
+}
+
+export interface ExplorationMapNode {
+  id: string
+  title: string
+  description: string
+  type: 'shop' | 'sidequest' | 'training' | 'intel' | 'exit'
+  once?: boolean
+  requires?: ChoiceRequirements
+  reward?: ExplorationReward
+  log?: string
+  shopItems?: ShopItemDefinition[]
+  quest?: SideQuestDefinition
+}
+
+export interface ExplorationMapDefinition {
+  id: string
+  title: string
+  summary: string
+  location: string
+  returnNodeId: string
+  nodes: ExplorationMapNode[]
 }
 
 export interface MartialSkillDefinition {

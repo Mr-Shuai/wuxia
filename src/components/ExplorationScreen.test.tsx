@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import App from '../App'
-import { explorationScenes } from '../game/data/exploration'
+import { explorationMaps } from '../game/data/explorationMaps'
 import { createGameState } from '../game/engine/createGameState'
 import ExplorationScreen from './ExplorationScreen'
 
@@ -15,38 +15,133 @@ describe('ExplorationScreen', () => {
     window.localStorage.clear()
   })
 
-  it('renders scene actions and invokes onChoose', async () => {
+  it('keeps exploration node hover transform fixed in the stylesheet override', () => {
     const user = userEvent.setup()
     const state = createGameState({
       name: '阿青',
       originId: 'wanderer',
       talentId: 'steady-heart',
     })
-    const calls: string[] = []
 
     render(
       <ExplorationScreen
         state={state}
-        scene={explorationScenes.X11}
-        onChoose={(action) => calls.push(action.id)}
+        map={explorationMaps.X11M}
+        onNodeAction={() => undefined}
       />,
     )
 
-    expect(screen.getByText('探索 · X11')).toBeInTheDocument()
-    expect(screen.getByRole('heading', { name: '酒楼暗查' })).toBeInTheDocument()
-    expect(screen.queryByText('现场速览')).not.toBeInTheDocument()
-    expect(screen.queryByText('可行动作 2')).not.toBeInTheDocument()
-    expect(screen.queryByText('完成后回到主线')).not.toBeInTheDocument()
-    expect(screen.queryByText('随身摘要')).not.toBeInTheDocument()
-    expect(screen.getByText('可能获得兵刃')).toBeInTheDocument()
-    expect(screen.getByText('可能悟出轻身法门')).toBeInTheDocument()
+    const shopNodeButton = screen.getByRole('button', { name: '掌柜小铺' })
 
-    await user.click(getExplorationActionButton('摸进后厨暗格，看看有没有人藏兵器'))
+    expect(shopNodeButton).toHaveStyle({ transform: 'translate(-50%, -50%)' })
 
-    expect(calls).toEqual(['search-kitchen-cache'])
+    return user.hover(shopNodeButton).then(() => {
+      expect(shopNodeButton).toHaveStyle({ transform: 'translate(-50%, -50%)' })
+    })
   })
 
-  it('reaches exploration before N11 and returns to story without switching to result screen', async () => {
+  it('renders a graphical route board and invokes node actions', async () => {
+    const user = userEvent.setup()
+    const state = createGameState({
+      name: '阿青',
+      originId: 'wanderer',
+      talentId: 'steady-heart',
+    })
+    state.silver = 12
+    state.currentExplorationMapId = 'X11M'
+    state.explorationReturnNodeId = 'N11'
+    const calls: Array<{ nodeId: string; shopItemId?: string }> = []
+
+    render(
+      <ExplorationScreen
+        state={state}
+        map={explorationMaps.X11M}
+        onNodeAction={(nodeId, shopItemId) => calls.push({ nodeId, shopItemId })}
+      />,
+    )
+
+    expect(screen.getByRole('heading', { name: '酒楼暗查图' })).toBeInTheDocument()
+    const routeBoard = screen.getByRole('region', { name: '探索路径图' })
+    expect(routeBoard).toBeInTheDocument()
+    expect(within(routeBoard).getAllByRole('button')).toHaveLength(5)
+    expect(within(routeBoard).queryByText('落点预览')).not.toBeInTheDocument()
+    const shopNodeButton = screen.getByRole('button', { name: '掌柜小铺' })
+    const trainingNodeButton = screen.getByRole('button', { name: '横梁试步' })
+    const exitNodeButton = screen.getByRole('button', { name: '收束行程' })
+    expect(shopNodeButton).toBeInTheDocument()
+    expect(trainingNodeButton).toBeInTheDocument()
+    expect(exitNodeButton).toBeInTheDocument()
+    expect(screen.getByText('节点详情')).toBeInTheDocument()
+
+    await user.hover(shopNodeButton)
+
+    expect(within(routeBoard).getByText('落点预览')).toBeInTheDocument()
+    expect(within(routeBoard).getByText('可采购 2 项 · 2-4 两')).toBeInTheDocument()
+
+    await user.unhover(shopNodeButton)
+
+    expect(within(routeBoard).queryByText('落点预览')).not.toBeInTheDocument()
+
+    await user.click(shopNodeButton)
+
+    expect(screen.getByText('金创药')).toBeInTheDocument()
+    expect(screen.getByText('4 两')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: '购买 金创药' })).toBeEnabled()
+
+    await user.click(screen.getByRole('button', { name: '购买 金创药' }))
+
+    expect(calls).toEqual([{ nodeId: 'inn-counter-shop', shopItemId: 'healing-salve' }])
+
+    await user.hover(exitNodeButton)
+
+    expect(within(routeBoard).getByText('返回主线，收束本次自由探索。')).toBeInTheDocument()
+
+    await user.unhover(exitNodeButton)
+
+    expect(within(routeBoard).queryByText('返回主线，收束本次自由探索。')).not.toBeInTheDocument()
+
+    await user.click(exitNodeButton)
+
+    expect(screen.getByRole('button', { name: '结束探索并返回主线' })).toBeInTheDocument()
+  })
+
+  it('disables detail actions while exploration narration is streaming', async () => {
+    const user = userEvent.setup()
+    const state = createGameState({
+      name: '阿青',
+      originId: 'wanderer',
+      talentId: 'steady-heart',
+    })
+    state.silver = 12
+    state.currentExplorationMapId = 'X11M'
+    state.explorationReturnNodeId = 'N11'
+    const calls: Array<{ nodeId: string; shopItemId?: string }> = []
+
+    render(
+      <ExplorationScreen
+        state={state}
+        map={explorationMaps.X11M}
+        onNodeAction={(nodeId, shopItemId) => calls.push({ nodeId, shopItemId })}
+        inlineResult={{
+          text: '你刚得到一条新线索。',
+          recentLogs: ['你刚得到一条新线索。'],
+          streaming: true,
+        }}
+        disableChoices
+      />,
+    )
+
+    await user.click(screen.getByRole('button', { name: '掌柜小铺' }))
+
+    expect(screen.getByRole('button', { name: '购买 金创药' })).toBeDisabled()
+
+    await user.click(screen.getByRole('button', { name: '横梁试步' }))
+    expect(screen.getByRole('button', { name: '试步习得' })).toBeDisabled()
+
+    expect(calls).toEqual([])
+  })
+
+  it('reaches map exploration before N11 and returns to story only after the manual exit action', async () => {
     const user = userEvent.setup()
 
     render(<App />)
@@ -66,16 +161,30 @@ describe('ExplorationScreen', () => {
     await user.click(screen.getByRole('button', { name: '把残篇交回镖局' }))
 
     await waitFor(() => {
-      expect(screen.getByText('探索 · X11')).toBeInTheDocument()
+      expect(screen.getByText('探索 · X11M')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: '酒楼暗查图' })).toBeInTheDocument()
       expect(screen.getAllByText('你把残篇交还，换来一份信任，也让自己站到了更亮的地方。').length).toBeGreaterThan(0)
-      expect(screen.queryByText('现场速览')).not.toBeInTheDocument()
-      expect(getExplorationActionButton('摸进后厨暗格，看看有没有人藏兵器')).toBeEnabled()
+      expect(screen.getByText('节点详情')).toBeInTheDocument()
     })
 
-    expect(screen.getByRole('heading', { name: '酒楼暗查' })).toBeInTheDocument()
-    expect(screen.queryByText('章节结算')).not.toBeInTheDocument()
+    await waitFor(() => {
+      expect(getExplorationActionButton('脚夫求助')).toBeEnabled()
+    })
 
-    await user.click(getExplorationActionButton('摸进后厨暗格，看看有没有人藏兵器'))
+    await user.click(getExplorationActionButton('脚夫求助'))
+    await user.click(screen.getByRole('button', { name: '了结此事' }))
+
+    await waitFor(() => {
+      expect(screen.getByText('探索 · X11M')).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: '酒楼暗查图' })).toBeInTheDocument()
+      expect(screen.queryByText('章节结算')).not.toBeInTheDocument()
+    })
+
+    await user.click(getExplorationActionButton('收束行程'))
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: '结束探索并返回主线' })).toBeEnabled()
+    })
+    await user.click(screen.getByRole('button', { name: '结束探索并返回主线' }))
 
     await waitFor(() => {
       expect(screen.getByText(/^N11$/)).toBeInTheDocument()
@@ -84,7 +193,6 @@ describe('ExplorationScreen', () => {
 
     expect(screen.getByText(/^N11$/)).toBeInTheDocument()
     expect(screen.getByRole('heading', { name: '酒楼听风' })).toBeInTheDocument()
-    expect(screen.queryByText('当前兵刃')).not.toBeInTheDocument()
     expect(screen.queryByText('章节结算')).not.toBeInTheDocument()
   })
 })
